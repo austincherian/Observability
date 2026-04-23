@@ -249,7 +249,7 @@ EOF
             systemctl restart slurmctld
             # Push updated config to compute nodes so slurmd picks up TaskProlog
             sleep 2
-            scontrol reconfigure || logger "WARNING: scontrol reconfigure failed â€” compute nodes may need manual reconfigure"
+            scontrol reconfigure || logger "WARNING: scontrol reconfigure failed -- compute nodes may need manual reconfigure"
             logger "Added TaskProlog to slurm.conf, restarted slurmctld, and reconfigured cluster"
         fi
     fi

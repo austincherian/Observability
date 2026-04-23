@@ -15,12 +15,11 @@ is running.
 
 | Component | Controller | Compute | Login | Port | Description |
 | --- | :---: | :---: | :---: | --- | --- |
-| Node Exporter | âœ“ | âœ“ | âœ“ | 9100 | OS-level metrics (CPU, memory, disk, network) |
-| DCGM Exporter | | âœ“ | | 9400 | NVIDIA GPU metrics with Slurm job-ID mapping |
-| EFA Exporter | | âœ“ | | 9109 | Elastic Fabric Adapter network metrics |
-| Slurm Exporter | âœ“ | | | 9341 | Slurm scheduler metrics (jobs, nodes, partitions) |
-| OTel Collector | âœ“ | âœ“ | âœ“ | 4317/4318 | Scrapes all local exporters and remote-writes to AMP |
-
+| Node Exporter | Y | Y | Y | 9100 | OS-level metrics (CPU, memory, disk, network) |
+| DCGM Exporter | | Y | | 9400 | NVIDIA GPU metrics with Slurm job-ID mapping |
+| EFA Exporter | | Y | | 9109 | Elastic Fabric Adapter network metrics |
+| Slurm Exporter | Y | | | 9341 | Slurm scheduler metrics (jobs, nodes, partitions) |
+| OTel Collector | Y | Y | Y | 4317/4318 | Scrapes all local exporters and remote-writes to AMP |
 
 ## Prerequisites
 
@@ -100,7 +99,7 @@ metrics to AMP. Attach a policy like:
 
 After the cluster is running and exporting metrics, open your Grafana
 workspace URL and import the following dashboards via
-**Dashboards â†’ New â†’ Import**:
+**Dashboards > New > Import**:
 
 | Dashboard | URL |
 | --- | --- |
@@ -111,7 +110,7 @@ workspace URL and import the following dashboards via
 | FSx for Lustre Metrics | `https://grafana.com/grafana/dashboards/20906-fsx-lustre/` |
 
 Ensure that the AMP workspace is configured as a Prometheus data source in
-Grafana. Navigate to **Apps â†’ AWS Data Sources â†’ Data sources**, select
+Grafana. Navigate to **Apps > AWS Data Sources > Data sources**, select
 your region, and choose the AMP workspace.
 
 ## Usage
@@ -253,24 +252,24 @@ your cluster nodes.
 
 ```
 observability/
-â”œâ”€â”€ README.md                            # This file
-â”œâ”€â”€ config.json                          # User configuration
-â”œâ”€â”€ setup_observability.sh               # Entrypoint script (OnInitComplete)
-â”œâ”€â”€ install_observability.py             # Orchestrator
-â”œâ”€â”€ install_node_exporter.sh             # Node Exporter (all nodes)
-â”œâ”€â”€ install_dcgm_exporter.sh             # DCGM Exporter (compute nodes)
-â”œâ”€â”€ install_efa_exporter.sh              # EFA Exporter (compute nodes)
-â”œâ”€â”€ install_slurm_exporter.sh            # Slurm Exporter (controller node)
-â”œâ”€â”€ install_otel_collector.sh            # OTel Collector (all nodes)
-â”œâ”€â”€ stop_observability.py                # Stop all observability services
-â”œâ”€â”€ LICENSE_SLURM_EXPORTER.txt           # License for Slurm Exporter dependency
-â”œâ”€â”€ otel_config/
-â”‚   â”œâ”€â”€ config-head-template.yaml        # OTel config for controller
-â”‚   â”œâ”€â”€ config-compute-template.yaml     # OTel config for compute
-â”‚   â””â”€â”€ config-login-template.yaml       # OTel config for login
-â””â”€â”€ dcgm_metrics_config/
-    â”œâ”€â”€ dcgm-metrics-basic.csv           # Basic DCGM metrics
-    â””â”€â”€ dcgm-metrics-advanced.csv        # Advanced DCGM metrics
+|-- README.md                            # This file
+|-- config.json                          # User configuration
+|-- setup_observability.sh               # Entrypoint script (OnInitComplete)
+|-- install_observability.py             # Orchestrator
+|-- install_node_exporter.sh             # Node Exporter (all nodes)
+|-- install_dcgm_exporter.sh             # DCGM Exporter (compute nodes)
+|-- install_efa_exporter.sh              # EFA Exporter (compute nodes)
+|-- install_slurm_exporter.sh            # Slurm Exporter (controller node)
+|-- install_otel_collector.sh            # OTel Collector (all nodes)
+|-- stop_observability.py                # Stop all observability services
+|-- LICENSE_SLURM_EXPORTER.txt           # License for Slurm Exporter dependency
+|-- otel_config/
+|   |-- config-head-template.yaml        # OTel config for controller
+|   |-- config-compute-template.yaml     # OTel config for compute
+|   +-- config-login-template.yaml       # OTel config for login
++-- dcgm_metrics_config/
+    |-- dcgm-metrics-basic.csv           # Basic DCGM metrics
+    +-- dcgm-metrics-advanced.csv        # Advanced DCGM metrics
 ```
 
 ## Related resources
