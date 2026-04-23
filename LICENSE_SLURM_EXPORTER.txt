@@ -3,7 +3,7 @@ software packages (such as open source packages) at install-time or build-time
 or run-time ("External Dependencies"). The External Dependencies are subject to
 license terms that you must accept in order to use this package. If you do not
 accept all of the applicable license terms, you should not use this package. We
-recommend that you consult your company’s open source approval policy before
+recommend that you consult your company's open source approval policy before
 proceeding.
 
 Provided below is a list of External Dependencies and the applicable license

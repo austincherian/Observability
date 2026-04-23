@@ -1,7 +1,7 @@
 {
-    "prometheus_remote_write_url": "https://aps-workspaces.us-east-1.amazonaws.com/workspaces/ws-e371cbdb-5f76-4fe1-91c1-5f30f6c164da/api/v1/remote_write",
+    "prometheus_remote_write_url": "https://aps-workspaces.<region>.amazonaws.com/workspaces/<workspace-id>/api/v1/remote_write",
     "advanced_metrics": false,
-    "nccl_metrics_enabled": true,
+    "nccl_metrics_enabled": false,
     "nccl_metrics_dump_interval_seconds": 30,
     "nccl_profiler_plugin_path": "/opt/aws/hyperpod/observability/lib/libnccl-profiler-inspector.so"
 }
