@@ -243,9 +243,14 @@ EOF
 
     if [[ "$NODE_TYPE" == "controller" ]]; then
         if ! grep -q "^TaskProlog=" /opt/slurm/etc/slurm.conf 2>/dev/null; then
+            # Ensure a newline before appending to avoid merging with the last line
+            sed -i -e '$a\' /opt/slurm/etc/slurm.conf
             echo "TaskProlog=/opt/slurm/etc/task_prolog.sh" >> /opt/slurm/etc/slurm.conf
             systemctl restart slurmctld
-            logger "Added TaskProlog to slurm.conf and restarted slurmctld"
+            # Push updated config to compute nodes so slurmd picks up TaskProlog
+            sleep 2
+            scontrol reconfigure || logger "WARNING: scontrol reconfigure failed â€” compute nodes may need manual reconfigure"
+            logger "Added TaskProlog to slurm.conf, restarted slurmctld, and reconfigured cluster"
         fi
     fi
 fi

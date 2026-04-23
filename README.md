@@ -15,11 +15,11 @@ is running.
 
 | Component | Controller | Compute | Login | Port | Description |
 | --- | :---: | :---: | :---: | --- | --- |
-| Node Exporter | ✓ | ✓ | ✓ | 9100 | OS-level metrics (CPU, memory, disk, network) |
-| DCGM Exporter | | ✓ | | 9400 | NVIDIA GPU metrics with Slurm job-ID mapping |
-| EFA Exporter | | ✓ | | 9109 | Elastic Fabric Adapter network metrics |
-| Slurm Exporter | ✓ | | | 9341 | Slurm scheduler metrics (jobs, nodes, partitions) |
-| OTel Collector | ✓ | ✓ | ✓ | 4317/4318 | Scrapes all local exporters and remote-writes to AMP |
+| Node Exporter | âœ“ | âœ“ | âœ“ | 9100 | OS-level metrics (CPU, memory, disk, network) |
+| DCGM Exporter | | âœ“ | | 9400 | NVIDIA GPU metrics with Slurm job-ID mapping |
+| EFA Exporter | | âœ“ | | 9109 | Elastic Fabric Adapter network metrics |
+| Slurm Exporter | âœ“ | | | 9341 | Slurm scheduler metrics (jobs, nodes, partitions) |
+| OTel Collector | âœ“ | âœ“ | âœ“ | 4317/4318 | Scrapes all local exporters and remote-writes to AMP |
 
 
 ## Prerequisites
@@ -100,7 +100,7 @@ metrics to AMP. Attach a policy like:
 
 After the cluster is running and exporting metrics, open your Grafana
 workspace URL and import the following dashboards via
-**Dashboards → New → Import**:
+**Dashboards â†’ New â†’ Import**:
 
 | Dashboard | URL |
 | --- | --- |
@@ -111,7 +111,7 @@ workspace URL and import the following dashboards via
 | FSx for Lustre Metrics | `https://grafana.com/grafana/dashboards/20906-fsx-lustre/` |
 
 Ensure that the AMP workspace is configured as a Prometheus data source in
-Grafana. Navigate to **Apps → AWS Data Sources → Data sources**, select
+Grafana. Navigate to **Apps â†’ AWS Data Sources â†’ Data sources**, select
 your region, and choose the AMP workspace.
 
 ## Usage
@@ -128,7 +128,7 @@ up Slurm and Docker automatically, then runs your extension script.
        "advanced_metrics": false,
        "nccl_metrics_enabled": false,
        "nccl_metrics_dump_interval_seconds": 30,
-       "nccl_profiler_plugin_path": "/opt/nccl-inspector/libnccl-profiler-inspector.so"
+       "nccl_profiler_plugin_path": "/opt/aws/hyperpod/observability/lib/libnccl-profiler-inspector.so"
    }
    ```
 
@@ -179,7 +179,31 @@ All configuration is in `config.json`:
 | `advanced_metrics` | bool | `false` | Enable extended DCGM GPU metrics and additional Node Exporter collectors |
 | `nccl_metrics_enabled` | bool | `false` | Enable NCCL Inspector metrics via Slurm task prolog |
 | `nccl_metrics_dump_interval_seconds` | int | `30` | NCCL metrics dump interval |
-| `nccl_profiler_plugin_path` | string | `/opt/nccl-inspector/...` | Path to the NCCL Inspector `.so` plugin |
+| `nccl_profiler_plugin_path` | string | `/opt/aws/hyperpod/observability/lib/libnccl-profiler-inspector.so` | Path to the NCCL Inspector `.so` plugin |
+
+### NCCL metrics note
+
+When `nccl_metrics_enabled` is set to `true`, the setup script configures a
+Slurm task prolog that injects NCCL Inspector environment variables into every
+job. During a multi-GPU NCCL job, the Inspector plugin writes
+Prometheus-format metrics to `/var/lib/node_exporter/nccl_inspector/` on
+compute nodes, where Node Exporter's textfile collector picks them up and
+the OTel Collector ships them to AMP.
+
+NCCL metrics require:
+- The NCCL Inspector profiler plugin (`.so`) installed on compute nodes.
+  The HyperPod AMI includes the plugin pre-built at
+  `/opt/aws/hyperpod/observability/lib/libnccl-profiler-inspector.so`.
+  If using a custom AMI, build from NCCL source (post-v2.28.3) at
+  `plugins/profiler/inspector/`. See the
+  [NCCL Inspector source](https://github.com/NVIDIA/nccl/tree/master/plugins/profiler/inspector).
+- A running multi-GPU distributed training job that uses NCCL collectives.
+  Metrics are only produced while NCCL operations are active.
+
+There is no pre-built Grafana dashboard for NCCL Inspector metrics. The
+metrics appear in AMP with `nccl_` prefixed names and can be queried via
+Grafana's Explore view using PromQL, or visualized by building a custom
+dashboard.
 
 ## Stopping observability
 
@@ -229,24 +253,24 @@ your cluster nodes.
 
 ```
 observability/
-├── README.md                            # This file
-├── config.json                          # User configuration
-├── setup_observability.sh               # Entrypoint script (OnInitComplete)
-├── install_observability.py             # Orchestrator
-├── install_node_exporter.sh             # Node Exporter (all nodes)
-├── install_dcgm_exporter.sh             # DCGM Exporter (compute nodes)
-├── install_efa_exporter.sh              # EFA Exporter (compute nodes)
-├── install_slurm_exporter.sh            # Slurm Exporter (controller node)
-├── install_otel_collector.sh            # OTel Collector (all nodes)
-├── stop_observability.py                # Stop all observability services
-├── LICENSE_SLURM_EXPORTER.txt           # License for Slurm Exporter dependency
-├── otel_config/
-│   ├── config-head-template.yaml        # OTel config for controller
-│   ├── config-compute-template.yaml     # OTel config for compute
-│   └── config-login-template.yaml       # OTel config for login
-└── dcgm_metrics_config/
-    ├── dcgm-metrics-basic.csv           # Basic DCGM metrics
-    └── dcgm-metrics-advanced.csv        # Advanced DCGM metrics
+â”œâ”€â”€ README.md                            # This file
+â”œâ”€â”€ config.json                          # User configuration
+â”œâ”€â”€ setup_observability.sh               # Entrypoint script (OnInitComplete)
+â”œâ”€â”€ install_observability.py             # Orchestrator
+â”œâ”€â”€ install_node_exporter.sh             # Node Exporter (all nodes)
+â”œâ”€â”€ install_dcgm_exporter.sh             # DCGM Exporter (compute nodes)
+â”œâ”€â”€ install_efa_exporter.sh              # EFA Exporter (compute nodes)
+â”œâ”€â”€ install_slurm_exporter.sh            # Slurm Exporter (controller node)
+â”œâ”€â”€ install_otel_collector.sh            # OTel Collector (all nodes)
+â”œâ”€â”€ stop_observability.py                # Stop all observability services
+â”œâ”€â”€ LICENSE_SLURM_EXPORTER.txt           # License for Slurm Exporter dependency
+â”œâ”€â”€ otel_config/
+â”‚   â”œâ”€â”€ config-head-template.yaml        # OTel config for controller
+â”‚   â”œâ”€â”€ config-compute-template.yaml     # OTel config for compute
+â”‚   â””â”€â”€ config-login-template.yaml       # OTel config for login
+â””â”€â”€ dcgm_metrics_config/
+    â”œâ”€â”€ dcgm-metrics-basic.csv           # Basic DCGM metrics
+    â””â”€â”€ dcgm-metrics-advanced.csv        # Advanced DCGM metrics
 ```
 
 ## Related resources
