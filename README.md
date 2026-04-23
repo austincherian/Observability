@@ -85,6 +85,50 @@ Node type detection logic:
 On compute nodes, DCGM Exporter gracefully skips installation if no NVIDIA
 GPU is detected (CPU-only compute nodes).
 
+### GPU-to-job-ID mapping (DCGM + Slurm Prolog/Epilog)
+
+When a Slurm job allocates GPUs, it's useful to know which job is using
+which GPU so that GPU metrics (temperature, utilization, errors) can be
+attributed to specific training jobs. This is handled by Slurm
+Prolog/Epilog scripts that the HyperPod AMI provides automatically.
+
+The flow works like this:
+
+1. A user submits a GPU job (e.g., `sbatch --gres=gpu:1 ...`)
+2. Slurm allocates GPUs and runs the **Prolog** script before the job starts
+3. The Prolog writes the job ID to a mapping file named after the GPU index
+   (e.g., `/run/slurm/dcgm-job-mapping/0` contains `"42"` for job 42)
+4. DCGM Exporter reads this directory and adds an `hpc_job` label to all
+   GPU metrics for that device
+5. When the job ends, the **Epilog** script removes the job ID from the
+   mapping file
+
+The result is that DCGM metrics in AMP/Grafana include the `hpc_job` label:
+
+```
+DCGM_FI_DEV_GPU_TEMP{gpu="0",...,hpc_job="42"} 27
+```
+
+This lets you filter GPU dashboards by job ID, correlate GPU utilization
+with specific training runs, and identify which jobs are causing thermal
+or error issues.
+
+The Prolog/Epilog scripts are provided by the HyperPod AMI at:
+- `/opt/slurm/etc/prolog.d/700_dcgm_job_map_register.sh`
+- `/opt/slurm/etc/epilog.d/700_dcgm_job_map_cleanup.sh`
+
+They use file locking (`flock`) for safe concurrent access and are designed
+to never return non-zero exit codes Ã¢â‚¬â€ a prolog failure would block the job
+from starting, and an epilog failure would drain the node, both of which
+are too disruptive for a metrics-only feature.
+
+> **Note:** When using AMI-based configuration (`OnInitComplete`), the
+> Prolog/Epilog scripts and the mapping directory are set up automatically.
+> No action is needed. When using `OnCreate` with custom lifecycle scripts,
+> ensure your `start_slurm.sh` configures `Prolog` and `Epilog` in
+> `slurm.conf` and that the DCGM Exporter mounts
+> `/run/slurm/dcgm-job-mapping` (with hyphens, not underscores).
+
 ## Prerequisites
 
 ### 1. Enable IAM Identity Center

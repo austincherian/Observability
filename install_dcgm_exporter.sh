@@ -10,7 +10,7 @@ DCGM_EXPORTER_VERSION=4.1.1-4.0.4-ubi9
 IMAGE="$ECR_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/hyperpod/dcgm_exporter:${DCGM_EXPORTER_VERSION}"
 METRICS_CSV_DIR="/etc/dcgm-exporter"
 METRICS_CSV_FILE="/etc/dcgm-exporter/dcgm-metrics.csv"
-JOB_ID_MAP_DIR="/run/slurm/dcgm_job_mapping"
+JOB_ID_MAP_DIR="/run/slurm/dcgm-job-mapping"
 
 # Maximum number of retries
 MAX_RETRIES=5
